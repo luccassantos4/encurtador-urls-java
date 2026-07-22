@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import tech.luccassantos4.urlshortener.entities.UrlEntity;
 import tech.luccassantos4.urlshortener.repository.UrlRepository;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.LocalDateTime;
 
 @Service
@@ -23,6 +25,8 @@ public class UrlService {
     }
 
     public String generateShortUrl(String originalUrl) {
+        validateUrl(originalUrl);
+        
         String id = generateUniqueId();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(EXPIRATION_MINUTES);
 
@@ -74,6 +78,18 @@ public class UrlService {
             }
         } else {
             log.info("Running without persisting due to DB auth issue");
+        }
+    }
+
+    private void validateUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            throw new IllegalArgumentException("URL cannot be null or empty");
+        }
+
+        try {
+            new URL(url);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid URL format: " + url, e);
         }
     }
 }

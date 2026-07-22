@@ -10,6 +10,8 @@ import tech.luccassantos4.urlshortener.controller.dto.ShortenUrlResponse;
 import tech.luccassantos4.urlshortener.service.UrlService;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class UrlController {
@@ -41,5 +43,12 @@ public class UrlController {
         headers.setLocation(URI.create(originalUrl));
 
         return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 }
