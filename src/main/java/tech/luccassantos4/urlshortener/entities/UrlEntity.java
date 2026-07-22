@@ -13,6 +13,7 @@ public class UrlEntity {
     @Id
     private String id;
     private String fullUrl;
+
     @Field(targetType = FieldType.DATE_TIME)
     @Indexed(expireAfter = "PT0S")
     private LocalDateTime expiresAt;

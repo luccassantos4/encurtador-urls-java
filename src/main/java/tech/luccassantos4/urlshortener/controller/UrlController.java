@@ -1,62 +1,45 @@
 package tech.luccassantos4.urlshortener.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tech.luccassantos4.urlshortener.controller.dto.ShortenUrlRequest;
 import tech.luccassantos4.urlshortener.controller.dto.ShortenUrlResponse;
-import tech.luccassantos4.urlshortener.entities.UrlEntity;
-import tech.luccassantos4.urlshortener.repository.UrlRepository;
+import tech.luccassantos4.urlshortener.service.UrlService;
 
-import java.time.LocalDateTime;
+import java.net.URI;
 
 @RestController
 public class UrlController {
 
-    private static final Logger log = LoggerFactory.getLogger(UrlController.class);
+    private final UrlService urlService;
 
-    private final UrlRepository urlRepository;
-
-    public UrlController(UrlRepository urlRepository) {
-        this.urlRepository = urlRepository;
+    public UrlController(UrlService urlService) {
+        this.urlService = urlService;
     }
 
     @PostMapping(value = "/shorten-url")
     public ResponseEntity<ShortenUrlResponse> shortenUrl(@RequestBody ShortenUrlRequest request, HttpServletRequest httpServletRequest) {
-
-        String id = null;
-        boolean dbAccessible = true;
-
-        try {
-            do {
-                id = RandomStringUtils.randomAlphanumeric(5, 10);
-            } while (urlRepository.existsById(id));
-        } catch (DataAccessException ex) {
-            log.warn("MongoDB not accessible or unauthorized; skipping existence check", ex);
-            dbAccessible = false;
-            id = RandomStringUtils.randomAlphanumeric(8);
-        }
-
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(1);
-
-        if (dbAccessible) {
-            try {
-                urlRepository.save(new UrlEntity(id, request.url(), expiresAt));
-            } catch (DataAccessException ex) {
-                log.warn("Failed to save URL to MongoDB", ex);
-            }
-        } else {
-            log.info("Running without persisting due to DB auth issue");
-        }
+        String id = urlService.generateShortUrl(request.url());
 
         var redirectUrl = httpServletRequest.getRequestURL().toString().replace("/shorten-url", "") + "/" + id;
 
         return ResponseEntity.ok(new ShortenUrlResponse(redirectUrl));
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<String> redirectToOriginalUrl(@PathVariable String id) {
+        String originalUrl = urlService.getOriginalUrl(id);
+
+        if (originalUrl == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(originalUrl));
+
+        return ResponseEntity.status(HttpStatus.FOUND).headers(headers).build();
     }
 }

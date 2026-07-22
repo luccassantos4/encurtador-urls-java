@@ -11,7 +11,8 @@ import org.springframework.data.mongodb.core.index.IndexOperations;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-nimport tech.luccassantos4.urlshortener.entities.UrlEntity;
+
+import tech.luccassantos4.urlshortener.entities.UrlEntity;
 
 @Component
 public class IndexCreator implements ApplicationRunner {
@@ -28,7 +29,7 @@ public class IndexCreator implements ApplicationRunner {
         try {
             IndexOperations ops = mongoTemplate.indexOps(UrlEntity.class);
             Index ttlIndex = new Index().on("expiresAt", Sort.Direction.ASC).expire(Duration.ZERO);
-            String name = ops.ensureIndex(ttlIndex);
+            String name = ops.createIndex(ttlIndex);
             log.info("Ensured TTL index: {}", name);
         } catch (Exception e) {
             log.warn("Could not create TTL index (permission issue?): {}", e.getMessage());
