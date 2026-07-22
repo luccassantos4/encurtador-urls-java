@@ -3,9 +3,10 @@ package tech.luccassantos4.urlshortener.entities;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Document(collection = "urls")
 public class UrlEntity {
@@ -13,10 +14,11 @@ public class UrlEntity {
     private String id;
     private String fullUrl;
 
+    @Field(targetType = FieldType.DATE_TIME)
     @Indexed(expireAfterSeconds = 0)
-    private Date expiresAt;
+    private LocalDateTime expiresAt;
 
-    public UrlEntity(String id, String fullUrl, Date expiresAt) {
+    public UrlEntity(String id, String fullUrl, LocalDateTime expiresAt) {
         this.id = id;
         this.fullUrl = fullUrl;
         this.expiresAt = expiresAt;
@@ -27,5 +29,13 @@ public class UrlEntity {
 
     public String getId() {
         return id;
+    }
+
+    public String getFullUrl() {
+        return fullUrl;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 }

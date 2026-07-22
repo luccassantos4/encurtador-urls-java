@@ -15,8 +15,6 @@ import tech.luccassantos4.urlshortener.entities.UrlEntity;
 import tech.luccassantos4.urlshortener.repository.UrlRepository;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 @RestController
 public class UrlController {
@@ -45,7 +43,7 @@ public class UrlController {
             id = RandomStringUtils.randomAlphanumeric(8);
         }
 
-        Date expiresAt = Date.from(LocalDateTime.now().plusMinutes(1).atZone(ZoneId.systemDefault()).toInstant());
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(1);
 
         if (dbAccessible) {
             try {
